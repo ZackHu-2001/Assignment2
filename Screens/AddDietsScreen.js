@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { addDiet, updateDiet } from '../services/firestore';
 
-const AddDietsScreen = ({ navigation }) => {
+const AddDietsScreen = ({ navigation, id }) => {
     const [open, setOpen] = useState(false);
     const [showDate, setShowDate] = useState(false);
     const [date, setDate] = useState(new Date());
@@ -16,7 +17,7 @@ const AddDietsScreen = ({ navigation }) => {
         setDate(currentDate);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         // Validation logic
         if (!description) {
             Alert.alert('Validation Error', 'Please enter the description.');
@@ -31,15 +32,32 @@ const AddDietsScreen = ({ navigation }) => {
             return;
         }
 
-        // Implement save logic here
-        // e.g., Save activity details to a database or state
-        console.log('Description:', description);
-        console.log('Calories:', calories);
-        console.log('Date:', date);
+        const dietsData = {
+            description,
+            calories: parseInt(calories),
+            date: date.toISOString(),
+        };
 
-        // Navigate back or give feedback to the user
-        Alert.alert('Success', 'Diets saved successfully.');
-        navigation.goBack();
+        if (id) {
+            try {
+                // Update the existing diets
+                await updateDiet(id, dietsData);
+                Alert.alert('Success', 'Diets updated successfully.');
+                navigation.goBack();
+            } catch (error) {
+                Alert.alert('Error', 'Error updating diets.');
+            }
+        } else {
+            try {
+                // Add a new diets
+                await addDiet(dietsData);
+                Alert.alert('Success', 'Diets added successfully.');
+                navigation.goBack();
+            } catch (error) {
+                Alert.alert('Error', 'Error adding diets.');
+                console.log(error);
+            }
+        }
     };
 
     return (

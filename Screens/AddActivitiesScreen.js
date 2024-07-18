@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { addActivity, updateActivity, getActivity } from '../services/firestore';
 
-const AddActivitiesScreen = ({ navigation }) => {
+const AddActivitiesScreen = ({ navigation, id }) => {
     const [open, setOpen] = useState(false);
     const [activity, setActivity] = useState(null);
     const [items, setItems] = useState([
@@ -20,13 +21,27 @@ const AddActivitiesScreen = ({ navigation }) => {
     const [date, setDate] = useState(new Date());
     const [duration, setDuration] = useState('');
 
+    useEffect(() => {
+        if (id) {
+            // Fetch activity details from Firestore
+            getActivity().then(activity => {
+                if (activity) {
+                    setActivity(activity.activity);
+                    setDuration(activity.duration);
+                    setDate(new Date(activity.date));
+                }
+            });
+        }
+    }, [id]);
+
     const handleDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
         setShowDate(false);
         setDate(currentDate);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+
         // Validation logic
         if (!activity) {
             Alert.alert('Validation Error', 'Please select an activity.');
@@ -41,15 +56,29 @@ const AddActivitiesScreen = ({ navigation }) => {
             return;
         }
 
-        // Implement save logic here
-        // e.g., Save activity details to a database or state
-        console.log('Activity:', activity);
-        console.log('Duration:', duration);
-        console.log('Date:', date);
-        
-        // Navigate back or give feedback to the user
-        Alert.alert('Success', 'Activity saved successfully.');
-        navigation.goBack();
+        const activityData = {
+            activity,
+            duration: parseInt(duration),
+            date: date.toISOString(),
+        };
+
+        if (id) {
+            try {
+                await updateActivity(activityData);
+                Alert.alert('Success', 'Activity updated successfully.');
+                navigation.goBack();
+            } catch (error) {
+                Alert.alert('Error', 'Failed to update activity.');
+            }
+        } else {
+            try {
+                await addActivity(activityData);
+                Alert.alert('Success', 'Activity added successfully.');
+                navigation.goBack();
+            } catch (error) {
+                Alert.alert('Error', 'Failed to add activity.');
+            }
+        }
     };
 
     return (
