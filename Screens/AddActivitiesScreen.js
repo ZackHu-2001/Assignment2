@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -16,8 +16,41 @@ const AddActivitiesScreen = ({ navigation }) => {
         { label: 'Cycling', value: 'cycling' },
         { label: 'Hiking', value: 'hiking' },
     ]);
-
+    const [showDate, setShowDate] = useState(false);
     const [date, setDate] = useState(new Date());
+    const [duration, setDuration] = useState('');
+
+    const handleDateChange = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setShowDate(false);
+        setDate(currentDate);
+    };
+
+    const handleSave = () => {
+        // Validation logic
+        if (!activity) {
+            Alert.alert('Validation Error', 'Please select an activity.');
+            return;
+        }
+        if (!duration || isNaN(duration) || duration <= 0) {
+            Alert.alert('Validation Error', 'Please enter a valid duration.');
+            return;
+        }
+        if (!date) {
+            Alert.alert('Validation Error', 'Please select a date.');
+            return;
+        }
+
+        // Implement save logic here
+        // e.g., Save activity details to a database or state
+        console.log('Activity:', activity);
+        console.log('Duration:', duration);
+        console.log('Date:', date);
+        
+        // Navigate back or give feedback to the user
+        Alert.alert('Success', 'Activity saved successfully.');
+        navigation.goBack();
+    };
 
     return (
         <View style={styles.container}>
@@ -37,21 +70,32 @@ const AddActivitiesScreen = ({ navigation }) => {
                 style={styles.input}
                 keyboardType="numeric"
                 placeholder="Enter duration"
+                value={duration}
+                onChangeText={setDuration}
             />
 
-            <Text style={styles.label}>Dates *</Text>
-            {/* <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-            /> */}
+            <Text style={styles.label}>Date *</Text>
+            <TouchableOpacity onPress={() => setShowDate(!showDate)}>
+                <TextInput
+                    style={styles.input}
+                    value={date.toDateString()}
+                    editable={false}
+                    pointerEvents="none"
+                />
+            </TouchableOpacity>
 
-            <View style={{width: 120}}>
-                <DateTimePicker value={date} />
-            </View>
+            {showDate && (
+                <DateTimePicker
+                    value={date}
+                    mode="date"
+                    display="inline"
+                    onChange={handleDateChange}
+                />
+            )}
 
             <View style={styles.buttonContainer}>
-                <Button title="Cancel" style={[styles.button, { backgroundColor: 'red' }]} />
-                <Button title="Save" style={styles.button} />
+                <Button title="Cancel" style={[styles.button, { backgroundColor: 'red' }]} onPress={() => navigation.goBack()} />
+                <Button title="Save" style={styles.button} onPress={handleSave} />
             </View>
         </View>
     );
@@ -75,7 +119,7 @@ const styles = StyleSheet.create({
     dropdown: {
         borderColor: '#ccc',
         borderWidth: 1,
-        marginBottom: 20
+        marginBottom: 20,
     },
     input: {
         height: 40,
@@ -86,7 +130,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     buttonContainer: {
-        marginTop: 120,
+        marginTop: 40,
         paddingLeft: 20,
         paddingRight: 20,
         flexDirection: 'row',
