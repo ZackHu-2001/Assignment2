@@ -7,6 +7,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AddActivitiesScreen from './screens/AddActivitiesScreen';
 import { createStackNavigator } from '@react-navigation/stack';
+import AddDietsScreen from './screens/AddDietsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -44,8 +45,9 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="Home" component={TabNavigator} options={{ headerShown: false }} />
+        <Stack.Screen name=" " component={TabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="AddActivity" component={AddActivitiesScreen} />
+        <Stack.Screen name="AddDiet" component={AddDietsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
