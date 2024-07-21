@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getDoc, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../Firebase/firebaseSetup'; // Ensure you import your Firestore setup
 
 export const addActivity = async (activity) => {
@@ -24,6 +24,7 @@ export const getActivities = async () => {
 export const getActivity = async (id) => {
     const docRef = doc(db, 'activities', id);
     const docSnap = await getDoc(docRef);
+    // console.log(docSnap, docSnap.exists());
     if (docSnap.exists()) {
         return { id: docSnap.id, ...docSnap.data() };
     } else {
@@ -76,3 +77,7 @@ export const updateDiet = async (id, updatedData) => {
     const dietRef = doc(db, 'diets', id);
     await updateDoc(dietRef, updatedData);
 }
+
+export const deleteDiet = async (id) => {
+    await deleteDoc(doc(db, 'diets', id));
+};
