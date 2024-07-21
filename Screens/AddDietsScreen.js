@@ -1,15 +1,62 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addDiet, updateDiet } from '../services/firestore';
+import { addDiet, updateDiet, getDiet, deleteDiet } from '../services/firestore';
+import { useRoute } from '@react-navigation/native';
+import { AntDesign } from '@expo/vector-icons';
+import { styles } from '../utils/styles';
 
-const AddDietsScreen = ({ navigation, id }) => {
-    const [open, setOpen] = useState(false);
+const AddDietsScreen = ({ navigation }) => {
+    const route = useRoute();
+    const { id } = route.params || {};
+
     const [showDate, setShowDate] = useState(false);
     const [date, setDate] = useState(new Date());
     const [description, setDescription] = useState('');
     const [calories, setCalories] = useState('');
+
+    useEffect(() => {
+        if (id) {
+            // Fetch diets details from Firestore
+            getDiet(id).then(diets => {
+                if (diets) {
+                    setDescription(diets.description);
+                    setCalories(diets.calories.toString());
+                    setDate(new Date(diets.date));
+                }
+            }).catch(error => {
+                console.log(error)
+            });
+        }
+
+        navigation.setOptions({
+            headerTitle: id ? 'Edit Diets' : 'Add Diets',
+            headerRight: () => (
+                id ? (
+                    <TouchableOpacity style={{ marginRight: 15, flexDirection: 'row' }}
+                        onPress={() => {
+                            Alert.alert('Delete Diet', 'Are you sure you want to delete this diet?', [
+                                {
+                                    text: 'Cancel',
+                                    onPress: () => { },
+                                    style: 'cancel',
+                                },
+                                {
+                                    text: 'Yes', onPress: () => {
+                                        deleteDiet(id)
+                                        alert('Diet deleted successfully.');
+                                        navigation.goBack();
+                                    }
+                                },
+                            ])
+                        }} >
+                        <AntDesign name="delete" size={24} color="black" />
+                    </TouchableOpacity>
+                ) : null
+            ),
+        });
+    }, [id]);
 
     const handleDateChange = (event, selectedDate) => {
         const currentDate = selectedDate || date;
@@ -55,7 +102,6 @@ const AddDietsScreen = ({ navigation, id }) => {
                 navigation.goBack();
             } catch (error) {
                 Alert.alert('Error', 'Error adding diets.');
-                console.log(error);
             }
         }
     };
@@ -106,49 +152,5 @@ const AddDietsScreen = ({ navigation, id }) => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#fff',
-        height: '100%',
-    },
-    headerText: {
-        fontSize: 24,
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 10,
-    },
-    dropdown: {
-        borderColor: '#ccc',
-        borderWidth: 1,
-        marginBottom: 20,
-    },
-    input: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingLeft: 10,
-        marginBottom: 20,
-    },
-    buttonContainer: {
-        marginTop: 40,
-        paddingLeft: 20,
-        paddingRight: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    button: {
-        backgroundColor: '#007bff',
-        width: 140,
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-});
 
 export default AddDietsScreen;

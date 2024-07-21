@@ -4,20 +4,31 @@ import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ItemsList from '../components/ItemsList';
 import { getActivities } from '../services/firestore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const ActivitiesScreen = ({ navigation }) => {
     const [activities, setActivities] = useState([]);
 
-    useEffect(() => {
+    const fetchActivities = async () => {
         getActivities().then(activities => {
             setActivities(activities);
         });
+    }
+
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchActivities();
+        }, [])
+    );
+
+    useEffect(() => {
+        fetchActivities();
     }, []);
 
     useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <TouchableOpacity style={{ marginRight: 15, flexDirection: 'row' }} 
+                <TouchableOpacity style={{ marginRight: 15, flexDirection: 'row' }}
                     onPress={() => navigation.navigate('AddActivity')} >
                     <Ionicons name="add" size={24} color="black" />
                     <Icon name="walk" size={24} color="black" />
@@ -27,9 +38,7 @@ const ActivitiesScreen = ({ navigation }) => {
     }, [navigation]);
 
     return (
-        <View>
-            <ItemsList items={activities} itemsType={'activity'}/>
-        </View>
+        <ItemsList items={activities} itemsType={'activity'} />
     );
 }
 

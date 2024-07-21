@@ -5,17 +5,25 @@ import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getDiets } from '../services/firestore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const DietScreen = ({ navigation }) => {
   const [diets, setDiets] = useState([]);
 
-  useEffect(() => {
-    getDiets().then(diets => {
-      setDiets(diets);
-    });
-  }, []);
+  const fetchDiets = async () => {
+    const diets = await getDiets();
+    setDiets(diets);
+  }
 
-  useLayoutEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchDiets();
+    }, [])
+  );
+
+  useEffect(() => {
+    fetchDiets();
+
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity style={{ marginRight: 15, flexDirection: 'row' }}
@@ -25,11 +33,10 @@ const DietScreen = ({ navigation }) => {
         </TouchableOpacity>
       ),
     });
-  })
+  }, []);
+
   return (
-    <View>
-      <ItemsList items={diets} />
-    </View>
+    <ItemsList items={diets} />
   );
 };
 

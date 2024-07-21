@@ -1,11 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { addActivity, updateActivity, getActivity } from '../services/firestore';
+import { addActivity, updateActivity, getActivity, deleteActivity } from '../services/firestore';
+import { useRoute } from '@react-navigation/native';
+import { AntDesign } from '@expo/vector-icons';
+import { styles } from '../utils/styles';
 
-const AddActivitiesScreen = ({ navigation, id }) => {
+const AddActivitiesScreen = ({ navigation }) => {
+    const route = useRoute();
+    const { id } = route.params || {};
+
     const [open, setOpen] = useState(false);
     const [activity, setActivity] = useState(null);
     const [items, setItems] = useState([
@@ -24,12 +30,40 @@ const AddActivitiesScreen = ({ navigation, id }) => {
     useEffect(() => {
         if (id) {
             // Fetch activity details from Firestore
-            getActivity().then(activity => {
+            getActivity(id).then(activity => {
+                console.log(activity);
                 if (activity) {
                     setActivity(activity.activity);
-                    setDuration(activity.duration);
+                    setDuration(activity.duration.toString());
                     setDate(new Date(activity.date));
                 }
+            }).catch(error => {
+                console.log(error)
+            });
+
+            navigation.setOptions({
+                headerTitle: id ? 'Edit Activity' : 'Add Activity',
+                headerRight: () => (
+                    id ? (
+                        <TouchableOpacity style={{ marginRight: 15, flexDirection: 'row' }}
+                            onPress={() => {
+                                Alert.alert('Delete Activity', 'Are you sure you want to delete this activity?', [
+                                    {
+                                      text: 'Cancel',
+                                      onPress: () => {},
+                                      style: 'cancel',
+                                    },
+                                    {text: 'Yes', onPress: () => {
+                                        deleteActivity(id)
+                                        alert('Activity deleted successfully.');
+                                        navigation.goBack();
+                                    }},
+                                  ])
+                            }} >
+                            <AntDesign name="delete" size={24} color="black" />
+                        </TouchableOpacity>
+                    ) : null
+                ),
             });
         }
     }, [id]);
@@ -41,7 +75,6 @@ const AddActivitiesScreen = ({ navigation, id }) => {
     };
 
     const handleSave = async () => {
-
         // Validation logic
         if (!activity) {
             Alert.alert('Validation Error', 'Please select an activity.');
@@ -62,22 +95,17 @@ const AddActivitiesScreen = ({ navigation, id }) => {
             date: date.toISOString(),
         };
 
-        if (id) {
-            try {
-                await updateActivity(activityData);
+        try {
+            if (id) {
+                await updateActivity(id, activityData);
                 Alert.alert('Success', 'Activity updated successfully.');
-                navigation.goBack();
-            } catch (error) {
-                Alert.alert('Error', 'Failed to update activity.');
-            }
-        } else {
-            try {
+            } else {
                 await addActivity(activityData);
                 Alert.alert('Success', 'Activity added successfully.');
-                navigation.goBack();
-            } catch (error) {
-                Alert.alert('Error', 'Failed to add activity.');
             }
+            navigation.goBack();
+        } catch (error) {
+            Alert.alert('Error', 'Failed to save activity.');
         }
     };
 
@@ -130,48 +158,5 @@ const AddActivitiesScreen = ({ navigation, id }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#fff',
-        height: '100%',
-    },
-    headerText: {
-        fontSize: 24,
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 10,
-    },
-    dropdown: {
-        borderColor: '#ccc',
-        borderWidth: 1,
-        marginBottom: 20,
-    },
-    input: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingLeft: 10,
-        marginBottom: 20,
-    },
-    buttonContainer: {
-        marginTop: 40,
-        paddingLeft: 20,
-        paddingRight: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    button: {
-        backgroundColor: '#007bff',
-        width: 140,
-        padding: 10,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-});
 
 export default AddActivitiesScreen;
