@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -15,6 +16,8 @@ const AddDietsScreen = ({ navigation }) => {
     const [date, setDate] = useState(new Date());
     const [description, setDescription] = useState('');
     const [calories, setCalories] = useState('');
+    const [special, setSpecial] = useState(false);
+    const [showCheckbox, setShowCheckbox] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -24,6 +27,8 @@ const AddDietsScreen = ({ navigation }) => {
                     setDescription(diets.description);
                     setCalories(diets.calories.toString());
                     setDate(new Date(diets.date));
+                    setSpecial(diets.special);
+                    setShowCheckbox(diets.special)
                 }
             }).catch(error => {
                 console.log(error)
@@ -78,15 +83,17 @@ const AddDietsScreen = ({ navigation }) => {
             Alert.alert('Validation Error', 'Please select a date.');
             return;
         }
-
+        
         const dietsData = {
             description,
             calories: parseInt(calories),
             date: date.toISOString(),
+            special: false,
         };
 
         if (id) {
             try {
+                dietsData.special = special;
                 // Update the existing diets
                 await updateDiet(id, dietsData);
                 Alert.alert('Success', 'Diets updated successfully.');
@@ -96,6 +103,9 @@ const AddDietsScreen = ({ navigation }) => {
             }
         } else {
             try {
+                if (calories > 800) {
+                    dietsData.special = true;
+                }
                 // Add a new diets
                 await addDiet(dietsData);
                 Alert.alert('Success', 'Diets added successfully.');
@@ -144,6 +154,14 @@ const AddDietsScreen = ({ navigation }) => {
                     onChange={handleDateChange}
                 />
             )}
+
+            {id && showCheckbox ?
+                <View style={{ flexDirection: 'row', width: "90%", justifyContent: "center" }}>
+                    <Text>This item is marked as special. Select the checkbox if you would like to approve it.</Text>
+                    <BouncyCheckbox isChecked={special} onPress={() => {
+                        setSpecial(!special);
+                    }} />
+                </View> : null}
 
             <View style={styles.buttonContainer}>
                 <Button title="Cancel" style={[styles.button, { backgroundColor: 'red' }]} onPress={() => navigation.goBack()} />

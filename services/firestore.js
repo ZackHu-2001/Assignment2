@@ -4,7 +4,6 @@ import { db } from '../Firebase/firebaseSetup'; // Ensure you import your Firest
 export const addActivity = async (activity) => {
     try {
         const docRef = await addDoc(collection(db, 'activities'), activity);
-        console.log('Document written with ID: ', docRef.id);
         return docRef.id;
     } catch (e) {
         console.error('Error adding document: ', e);
@@ -24,8 +23,8 @@ export const getActivities = async () => {
 export const getActivity = async (id) => {
     const docRef = doc(db, 'activities', id);
     const docSnap = await getDoc(docRef);
-    // console.log(docSnap, docSnap.exists());
     if (docSnap.exists()) {
+        console.log(docSnap.data());
         return { id: docSnap.id, ...docSnap.data() };
     } else {
         console.log('No such document!');
@@ -45,7 +44,6 @@ export const deleteActivity = async (id) => {
 export const addDiet = async (diet) => {
     try {
         const docRef = await addDoc(collection(db, 'diets'), diet);
-        console.log('Document written with ID: ', docRef.id);
         return docRef.id;
     } catch (e) {
         console.error('Error adding document: ', e);

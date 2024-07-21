@@ -10,19 +10,23 @@ const ItemsList = ({ items, itemsType }) => {
                     items.map(item => (
                         <Item
                             key={item.id}
+                            id={item.id}
                             title={item.activity}
-                            alert={item.duration > 60}
+                            alert={item.special}
                             date={new Date(item.date).toDateString()} // Convert Firestore timestamp to date string
                             detail={`${item.duration} mins`}
+                            goto="AddActivity"
                         />
                     )) :
                     items.map(item => (
                         <Item
                             key={item.id}
+                            id={item.id}
                             title={item.description}
-                            alert={item.calories > 800}
+                            alert={item.special}
                             date={new Date(item.date).toDateString()} // Convert Firestore timestamp to date string
                             detail={`${item.calories} cal`}
+                            goto="AddDiet"
                         />
                     ))
             }
@@ -33,7 +37,7 @@ const ItemsList = ({ items, itemsType }) => {
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        marginTop: 30,
+        paddingTop: 30,
         gap: 20,
         alignItems: 'center',
         justifyContent: 'flex-start',

@@ -1,10 +1,12 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const Item = ({ title, alert, date, detail }) => {
+const Item = ({ id, title, alert, date, detail, goto }) => {
+    const navigation = useNavigation();
     return (
-        <TouchableOpacity style={styles.container}>
+        <TouchableOpacity style={styles.container} onPress={() => navigation.navigate(goto, {id: id})}>
             <Text style={styles.title}>{title}</Text>
             {alert ? <Feather name="alert-triangle" size={16} color="black" /> : <View style={{width: 16}}></View>}
             <Text style={[styles.content, { width: 120 }]}>{date}</Text>

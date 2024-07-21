@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import BouncyCheckbox from "react-native-bouncy-checkbox";
+import React, { useEffect, useState } from 'react';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Button from '../components/Button';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -26,6 +27,8 @@ const AddActivitiesScreen = ({ navigation }) => {
     const [showDate, setShowDate] = useState(false);
     const [date, setDate] = useState(new Date());
     const [duration, setDuration] = useState('');
+    const [special, setSpecial] = useState(false);
+    const [showCheckbox, setShowCheckbox] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -36,6 +39,8 @@ const AddActivitiesScreen = ({ navigation }) => {
                     setActivity(activity.activity);
                     setDuration(activity.duration.toString());
                     setDate(new Date(activity.date));
+                    setSpecial(activity.special);
+                    setShowCheckbox(activity.special)
                 }
             }).catch(error => {
                 console.log(error)
@@ -49,16 +54,18 @@ const AddActivitiesScreen = ({ navigation }) => {
                             onPress={() => {
                                 Alert.alert('Delete Activity', 'Are you sure you want to delete this activity?', [
                                     {
-                                      text: 'Cancel',
-                                      onPress: () => {},
-                                      style: 'cancel',
+                                        text: 'Cancel',
+                                        onPress: () => { },
+                                        style: 'cancel',
                                     },
-                                    {text: 'Yes', onPress: () => {
-                                        deleteActivity(id)
-                                        alert('Activity deleted successfully.');
-                                        navigation.goBack();
-                                    }},
-                                  ])
+                                    {
+                                        text: 'Yes', onPress: () => {
+                                            deleteActivity(id)
+                                            alert('Activity deleted successfully.');
+                                            navigation.goBack();
+                                        }
+                                    },
+                                ])
                             }} >
                             <AntDesign name="delete" size={24} color="black" />
                         </TouchableOpacity>
@@ -93,13 +100,18 @@ const AddActivitiesScreen = ({ navigation }) => {
             activity,
             duration: parseInt(duration),
             date: date.toISOString(),
+            special: false,
         };
 
         try {
             if (id) {
+                activityData.special = special;
                 await updateActivity(id, activityData);
                 Alert.alert('Success', 'Activity updated successfully.');
             } else {
+                if ((activity === 'running' || activity === 'weights') && duration > 60) {
+                    activityData.special = true;
+                }
                 await addActivity(activityData);
                 Alert.alert('Success', 'Activity added successfully.');
             }
@@ -149,6 +161,15 @@ const AddActivitiesScreen = ({ navigation }) => {
                     onChange={handleDateChange}
                 />
             )}
+
+            {id && showCheckbox ?
+                <View style={{flexDirection: 'row', width: "90%", justifyContent: "center"}}>
+                    <Text>This item is marked as special. Select the checkbox if you would like to approve it.</Text>
+                    <BouncyCheckbox isChecked={special} onPress={() => {
+                        setSpecial(!special);
+                    }} />
+                </View>
+                : null}
 
             <View style={styles.buttonContainer}>
                 <Button title="Cancel" style={[styles.button, { backgroundColor: 'red' }]} onPress={() => navigation.goBack()} />
